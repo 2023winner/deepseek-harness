@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-15-resumed-log-system-prompt-head.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-10-15-resumed-log-system-prompt-head.md
+/agent-note-a-resumed-log-protects-the-system-message-its-surface-gains:
+  en: a2a9ad1f73925fb0
+  zh: 9f6bd4235212c10f
+/agent-note-a-resumed-log-protects-the-system-message-its-surface-gains/problem:
+  en: ca0f37749931a147
+  zh: bcaf21453733a1e9
+/agent-note-a-resumed-log-protects-the-system-message-its-surface-gains/decision:
+  en: e1b9a2696b0d32ad
+  zh: 9c335ec39de8ddda
+/agent-note-a-resumed-log-protects-the-system-message-its-surface-gains/alternatives-considered:
+  en: d53db41aec4dcd1f
+  zh: a162ae83435f07cf
+/agent-note-a-resumed-log-protects-the-system-message-its-surface-gains/consequences:
+  en: e161ff5ce7498b89
+  zh: cdb60f32ab582c78
+/agent-note-a-resumed-log-protects-the-system-message-its-surface-gains/testing:
+  en: 7a67bf417141390e
+  zh: e7bd71843ba2bbc9

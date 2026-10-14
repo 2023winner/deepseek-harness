@@ -85,4 +85,39 @@ describe('current event admission at EOF', () => {
     expect((await readFile(path)).subarray(0, bytes.length)).toEqual(bytes)
   })
 
+  it('loads a stored log that gains its system message after existing history', async () => {
+    // A session recorded before the format stored system messages resumes: the
+    // current loop appends its system prompt after the replayed history, so the
+    // first surface node is user input rather than the system message.
+    const events = [
+      { type: 'turn/start', seq: 0, time: 1, data: { turn: 1 } },
+      { type: 'step/start', seq: 1, time: 2, data: { turn: 1, step: 1 } },
+      { type: 'user/message', seq: 2, time: 3, surfaceOp: 'append', data: { id: 'input', role: 'user', source: { kind: 'user' }, content: [{ type: 'text', text: 'input' }] } },
+      { type: 'system/message', seq: 3, time: 4, surfaceOp: 'append', data: { turn: 1, step: 1, message: { id: 'system', role: 'system', source: { kind: 'system-prompt' }, content: [{ type: 'text', text: 'System' }] } } },
+      { type: 'step/end', seq: 4, time: 5, data: { turn: 1, step: 1 } },
+      { type: 'turn/end', seq: 5, time: 6, data: { turn: 1, reason: { kind: 'completed' } } },
+    ]
+    const bytes = Buffer.from([header, ...events].map(row => JSON.stringify(row)).join('\n') + '\n')
+    const path = await store(bytes)
+    const reader = await ctx.sessionPersistence.open(id, 'read')
+    try {
+      expect((await reader.read()).events).toEqual(events)
+    } finally {
+      await reader.close()
+    }
+    const writer = await ctx.sessionPersistence.open(id, 'write')
+    try {
+      await writer.append([{ type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } }])
+    } finally {
+      await writer.close()
+    }
+    expect((await readFile(path)).subarray(0, bytes.length)).toEqual(bytes)
+    const reopened = await ctx.sessionPersistence.open(id, 'read')
+    try {
+      expect((await reopened.read()).events).toHaveLength(7)
+    } finally {
+      await reopened.close()
+    }
+  })
+
 })

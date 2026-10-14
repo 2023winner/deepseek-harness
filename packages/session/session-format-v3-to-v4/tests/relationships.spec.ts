@@ -194,8 +194,6 @@ describe('V4 protected system surface and malformed relationship inputs', () => 
     const prune = row('compaction/prune', { shadowedRange: { start: 3, end: 3 }, shadowedSeqs: [3], shadowedTokenCount: 1 })
     expect(() => reopen([...begin(), system(), input(), prune, ...end()])).not.toThrow()
     for (const rows of [
-      [...begin(), input(), system()],
-      [...begin(), input(), { ...replacement, sourceEventSeqs: [2] }],
       [...begin(), system(), { ...input(), surfaceOp: { op: 'replace', startSeq: 2, endSeq: 2 }, sourceEventSeqs: [2] }],
       [...begin(), system(), input(), { ...replacement, surfaceOp: { op: 'replace', startSeq: 2, endSeq: 3 }, sourceEventSeqs: [2, 3] }],
       [...begin(), system(), input(), { ...replacement, surfaceOp: { op: 'replace', startSeq: 0, endSeq: 0 } }],
@@ -203,6 +201,19 @@ describe('V4 protected system surface and malformed relationship inputs', () => 
       [...begin(), system(), input(), { ...replacement, sourceEventSeqs: [0] }],
       [...begin(), system(), row('compaction/prune', { shadowedRange: { start: 2, end: 2 }, shadowedSeqs: [2] })],
     ]) expect(() => reopen(rows)).toThrow()
+  })
+
+  it('protects a system message that joins a surface which already holds history', () => {
+    const head = 3
+    expect(reopen([...begin(), input(), system(), ...end()]).messages.map(message => message.role)).toEqual(['user', 'system'])
+    expect(() => reopen([...begin(), input(), system(), row('compaction/prune', { shadowedRange: { start: head, end: head }, shadowedSeqs: [head] }), ...end()]))
+      .toThrow(/protected system head/)
+    expect(() => reopen([...begin(), input(), system(), { ...input(), surfaceOp: { op: 'replace', startSeq: head, endSeq: head }, sourceEventSeqs: [head] }, ...end()]))
+      .toThrow(/protected system head/)
+    expect(() => reopen([...begin(), input(), system(), { ...system(), surfaceOp: { op: 'replace', startSeq: head, endSeq: head }, sourceEventSeqs: [head] }, ...end()]))
+      .not.toThrow()
+    expect(() => reopen([...begin(), input(), { ...system(), surfaceOp: { op: 'replace', startSeq: 2, endSeq: 2 }, sourceEventSeqs: [2] }, ...end()]))
+      .not.toThrow()
   })
 
   it('rejects malformed relationship values and mismatched inherited transaction ownership', () => {

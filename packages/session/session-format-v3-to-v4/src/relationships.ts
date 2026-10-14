@@ -56,6 +56,10 @@ class Relationships {
   nextStep = 1
   provider: SessionFormatJsonValue | undefined
   surface: number[] = []
+  /**
+   * Surface node carrying the session's system prompt: the first `system/message` to join the
+   * surface, and the only node compaction or a non-system replacement may not shadow.
+   */
   protectedHead: number | undefined
   compaction: Compaction | undefined
   readonly tools = new Map<string, ToolState>()
@@ -123,11 +127,8 @@ class Relationships {
 
   foldSurface(event: SessionFormatEvent): void {
     if (!SURFACE_TYPES.has(event.type)) return
-    if (event.type === 'system/message' && this.surface.length > 0 && this.protectedHead === undefined) {
-      throw new SessionFormatError('system/message requires a protected first surface head')
-    }
     if (event['surfaceOp'] === 'append') {
-      if (event.type === 'system/message' && this.surface.length === 0) this.protectedHead = event.seq
+      if (event.type === 'system/message' && this.protectedHead === undefined) this.protectedHead = event.seq
       this.surface.push(event.seq)
       return
     }
@@ -143,6 +144,7 @@ class Relationships {
       this.protectedHead = event.seq
     }
     this.surface.splice(first, removed.length, event.seq)
+    if (event.type === 'system/message' && this.protectedHead === undefined) this.protectedHead = event.seq
   }
 
   tool(event: SessionFormatEvent, data: SessionFormatJsonObject): void {

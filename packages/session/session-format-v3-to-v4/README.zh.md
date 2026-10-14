@@ -216,7 +216,7 @@ Stage 之前先执行 V3 物理解码与 header 校验。Stage 按上述规范�
 | 逻辑 header | 精确的必需字段 `version`、`id`、`createdAt`、`isSeeded`、`delegationDepth`；可选字段 `cwd`、`parentSession`、`origin`、`agentPreset`；无其他键。Version 为 4，id 为字符串，创建时间／深度为非负安全整数，seeded 为布尔值，存在的 cwd 为绝对路径，可选 id 为字符串，存在的 origin 为 `subagent`。 |
 | 事件信封 | 必需字段为 `type`、`seq`、`time` 和 JSON `data`；只允许可选的 `surfaceOp`、`sourceEventSeqs` 与 `ignorable`。序号为连续的非负安全整数，time 为安全整数，存在的 `ignorable` 必须恰好为 true。 |
 | 表面消息 | System、user、developer、assistant 和 tool/result 要求 placement，以及身份明确且角色匹配的消息。普通消息信封及角色专用来源接纳由已安装 Session 校验负责。 |
-| 替换与引用 | 端点按当前表面顺序选择包含两端的区间；引用指向更早事件并覆盖移除节点。受保护的首个 system head 只能由恰好覆盖该 head 的单个 system 消息替换。 |
+| 替换与引用 | 端点按当前表面顺序选择包含两端的区间；引用指向更早事件并覆盖移除节点。首个加入表面的 `system/message` 即其受保护 system 节点，无论位于何处，且只能由恰好覆盖该节点的单个 system 消息替换。 |
 | Request header | 拒绝已退役的 `header.system`（包括空值）及格式错误的 header／data 记录；已安装 Session 检查当前 config、reason、adapter-default 标记，并要求省略空 `tools` / `adapterDefaults`。 |
 | 工具结果 | 要求 tool 角色、非空消息／调用 id、匹配的 `source.kind: 'tool'` 与 `source.callId`、直接数组 content、不含已退役结果 wrapper，以及存在时为布尔值的 `isError`。`data.error` 要求 `isError: true`。 |
 | System 消息 | 要求正 turn／step、非空 id、system 角色、数组 content 和 system-prompt 来源。检查已知 text／reasoning、tool-call 及 image 字段；拒绝已退役 tool-result wrapper。额外 JSON 元数据及可通过合并扩展的 block kind 不会被全局删除。 |
